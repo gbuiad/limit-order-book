@@ -15,15 +15,14 @@ from rich.panel import Panel
 from order_book import OrderBook
 from data_feed_live import partial_depth_stream
 from config import DISPLAY_LEVELS, SYMBOL
+from signals import get_signal
 
 def build_display(book, levels = 10):
     best_bid = book.best_bid()
     best_ask = book.best_ask()
     mid = book.mid_price()
-    spread = None
     
-    if best_bid is not None and best_ask is not None:
-        spread = best_ask - best_bid
+    sgnl, imbalance, spread = get_signal(book)
         
     summary = Table.grid(padding = 1)
     summary.add_row("Symbol: ", SYMBOL)
@@ -31,6 +30,8 @@ def build_display(book, levels = 10):
     summary.add_row("Best Ask: ", f"{best_ask:.2f}" if best_ask is not None else "None")
     summary.add_row("Spread: ", f"{spread:.2f}" if spread is not None else "None")
     summary.add_row("Mid: ", f"{mid:.2f}" if mid is not None else "None")
+    summary.add_row("Imbalance: ", f"{imbalance:.3f}")
+    summary.add_row("Signal: ", sgnl)
     
     ask_table = Table(title = "ASKS")
     ask_table.add_column("Price", justify = "right")

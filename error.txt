@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "/Users/yifanli/lob_proj/main_live.py", line 70, in <module>
+    asyncio.run(main())
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/Users/yifanli/lob_proj/main_live.py", line 61, in main
+    with Live(build_display(book, DISPLAY_LEVELS), refresh_per_second = 4, screen = False) as live:
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/yifanli/lob_proj/main_live.py", line 34, in build_display
+    summary.add_row("Signal: ", f"{sgnl:.3f}")
+                                ^^^^^^^^^^^^^
+ValueError: Unknown format code 'f' for object of type 'str'
