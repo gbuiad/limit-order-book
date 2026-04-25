@@ -9,6 +9,8 @@ This project implements a Level 2 limit order book in Python.
 - Tracks best bid/ask and spread
 - Simulates real-time order book updates using Binance bitcoin data
 - prints SELL, HOLD, BUY based on imbalance signal
+- integrate real-time market data (Binance)
+- compute order imbalance
 
 ## Structure
 - `order_book.py`: core data structure
@@ -16,10 +18,9 @@ This project implements a Level 2 limit order book in Python.
 - `main_live.py`: simulation runner
 - `config.py`: settings
 - `signals.py`: when to print signals
+- `paper_trader.py`: simulate buying and selling w/ money
 
 ## Future Work
-- integrate real-time market data (Binance)
-- compute order imbalance
 - build trading strategies on top
 
 ## Modes
