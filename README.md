@@ -7,13 +7,15 @@ This project implements a Level 2 limit order book in Python.
 - Maintains bid/ask price levels
 - Supports dynamic updates (add/remove levels)
 - Tracks best bid/ask and spread
-- Simulates real-time order book updates using mock data
+- Simulates real-time order book updates using Binance bitcoin data
+- prints SELL, HOLD, BUY based on imbalance signal
 
 ## Structure
 - `order_book.py`: core data structure
 - `data_feed.py`: mock market data
-- `main.py`: simulation runner
+- `main_live.py`: simulation runner
 - `config.py`: settings
+- `signals.py`: when to print signals
 
 ## Future Work
 - integrate real-time market data (Binance)

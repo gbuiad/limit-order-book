@@ -14,15 +14,23 @@ from rich.panel import Panel
 
 from order_book import OrderBook
 from data_feed_live import partial_depth_stream
-from config import DISPLAY_LEVELS, SYMBOL
+from config import (
+    DISPLAY_LEVELS,
+    SYMBOL,
+    INITIAL_CASH,
+    TRADE_USD_SIZE,
+    FEE_RATE
+)
 from signals import get_signal
+from paper_trader import PaperTrader
 
-def build_display(book, levels = 10):
+def build_display(book, trader, levels = 10):
     best_bid = book.best_bid()
     best_ask = book.best_ask()
     mid = book.mid_price()
     
-    sgnl, imbalance, spread = get_signal(book)
+    signal, imbalance, spread = get_signal(book)
+    trader_stats = trader.summary(mid)
         
     summary = Table.grid(padding = 1)
     summary.add_row("Symbol: ", SYMBOL)
@@ -31,7 +39,20 @@ def build_display(book, levels = 10):
     summary.add_row("Spread: ", f"{spread:.2f}" if spread is not None else "None")
     summary.add_row("Mid: ", f"{mid:.2f}" if mid is not None else "None")
     summary.add_row("Imbalance: ", f"{imbalance:.3f}")
-    summary.add_row("Signal: ", sgnl)
+    summary.add_row("Signal: ", signal)
+    
+    trader_table = Table.grid(padding=1)
+    trader_table.add_row("Cash:", f"{trader_stats['cash']:.2f}")
+    trader_table.add_row("BTC Position:", f"{trader_stats['position_btc']:.6f}")
+    trader_table.add_row(
+        "Entry Price:",
+        f"{trader_stats['entry_price']:.2f}" if trader_stats["entry_price"] is not None else "None",
+    )
+    trader_table.add_row("Realized PnL:", f"{trader_stats['realized_pnl']:.2f}")
+    trader_table.add_row("Unrealized PnL:", f"{trader_stats['unrealized_pnl']:.2f}")
+    trader_table.add_row("Portfolio Vsalue:", f"{trader_stats['portfolio_value']:.2f}")
+    trader_table.add_row("Trades:", str(trader_stats["trade_count"]))
+    trader_table.add_row("Last Action:", trader_stats["last_action"])
     
     ask_table = Table(title = "ASKS")
     ask_table.add_column("Price", justify = "right")
@@ -51,20 +72,35 @@ def build_display(book, levels = 10):
         
     return Group(
         Panel(summary, title = "Market Summary"),
+        Panel(trader_table, title="Paper Trader"),
         ask_table,
         bid_table
     )
     
 async def main():
     book = OrderBook()
+    trader = PaperTrader(
+        initial_cash = INITIAL_CASH,
+        trade_usd_size = TRADE_USD_SIZE,
+        fee_rate = FEE_RATE,
+    )
 
-    with Live(build_display(book, DISPLAY_LEVELS), refresh_per_second = 4, screen = False) as live:
+    with Live(build_display(book, trader, DISPLAY_LEVELS), refresh_per_second = 4, screen = False) as live:
         async for event in partial_depth_stream(levels = 20, speed = '100ms'):
             bids = event.get("bids", [])
             asks = event.get("asks", [])
             
             book.load_snapshot(bids, asks)
-            live.update(build_display(book, DISPLAY_LEVELS))
+            
+            signal,imbalance, spread = get_signal(book)
+            
+            if signal == "BUY" and not trader.has_position():
+                trader.buy(book.best_ask())
+                
+            elif signal == "SELL" and trader.has_position():
+                trader.sell(book.best_bid())
+            
+            live.update(build_display(book, trader, DISPLAY_LEVELS))
 
 if __name__ == "__main__":
     asyncio.run(main())
